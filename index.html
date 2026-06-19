@@ -23,8 +23,9 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         h1 { text-align: center; color: #38bdf8; margin-bottom: 5px; font-size: 24px; }
-        p.subtitle { text-align: center; color: #94a3b8; margin-top: 0; font-size: 14px; }
+        p.subtitle { text-align: center; color: #94a3b8; margin-top: 0; font-size: 14px; margin-bottom: 20px; }
         
+        /* Cuadro de API elegante y ocultable */
         .api-box {
             background: #334155;
             padding: 12px;
@@ -43,7 +44,7 @@
         }
         button:hover { background: #0284c7; }
 
-        .ticker-list { margin-top: 20px; }
+        .ticker-list { margin-top: 15px; }
         .ticker-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 0; border-bottom: 1px solid #334155;
@@ -59,6 +60,13 @@
         .igual { color: #94a3b8; }
         
         #status { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 10px; }
+        
+        /* Botoncito discreto para configuración */
+        .btn-config {
+            background: none; border: none; color: #64748b; font-size: 11px; 
+            text-decoration: underline; margin-top: 20px; cursor: pointer; padding: 5px; width: auto; display: block; margin-left: auto; margin-right: auto;
+        }
+        .btn-config:hover { color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -67,7 +75,7 @@
     <h1>📈 Cotizaciones en Vivo</h1>
     <p class="subtitle">Tu Monitor Personal de Mercados</p>
     
-    <div class="api-box">
+    <div class="api-box" id="contenedor-api">
         <label for="api-key">PEGÁ ACÁ TU API KEY DE FINNHUB:</label>
         <input type="text" id="api-key" placeholder="Pegá el código largo acá">
     </div>
@@ -77,10 +85,11 @@
 
     <div class="ticker-list" id="lista-precios">
         </div>
+    
+    <button class="btn-config" onclick="mostrarConfigApi()">⚙️ Cambiar API Key</button>
 </div>
 
 <script>
-    // Lista de activos actualizada según tus indicaciones
     const activos = [
         { ticker: "AAPL", nombre: "Apple Inc." },
         { ticker: "MSFT", nombre: "Microsoft" },
@@ -95,8 +104,10 @@
     ];
 
     window.onload = function() {
-        if(localStorage.getItem('finnhub_key')) {
-            document.getElementById('api-key').value = localStorage.getItem('finnhub_key');
+        let claveGuardada = localStorage.getItem('finnhub_key');
+        if(claveGuardada) {
+            document.getElementById('api-key').value = claveGuardada;
+            document.getElementById('contenedor-api').style.display = "none"; // Oculta el cuadro feo de una
             actualizarCotizaciones();
         } else {
             renderListaVacia();
@@ -118,6 +129,10 @@
         `).join('');
     }
 
+    function mostrarConfigApi() {
+        document.getElementById('contenedor-api').style.display = "block"; // Vuelve a mostrar el cuadro si tocan el engranaje
+    }
+
     async function actualizarCotizaciones() {
         const apiKey = document.getElementById('api-key').value.trim();
         const status = document.getElementById('status');
@@ -128,6 +143,8 @@
         }
 
         localStorage.setItem('finnhub_key', apiKey);
+        // Escondemos el cuadro después de actualizar con éxito
+        document.getElementById('contenedor-api').style.display = "none";
         status.innerText = "Buscando precios del mercado...";
 
         const lista = document.getElementById('lista-precios');
@@ -142,9 +159,7 @@
                 const precio = datos.c;
                 const cambioPorcentaje = datos.dp;
 
-                if (precio === 0 || precio === null) {
-                    throw new Error("Sin datos");
-                }
+                if (precio === 0 || precio === null) throw new Error("Sin datos");
 
                 let claseColor = "igual";
                 let signo = "";
@@ -182,7 +197,7 @@
         }
 
         lista.innerHTML = htmlContenido;
-        status.innerText = "Precios actualizados con éxito.";
+        status.innerText = "Precios actualizados.";
     }
 </script>
 </body>
