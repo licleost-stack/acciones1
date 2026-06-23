@@ -74,4 +74,129 @@
     <p class="subtitle">Tu Monitor Personal de Mercados</p>
     
     <div class="api-box" id="contenedor-api">
-        <label for="api-
+        <label for="api-key">PEGÁ ACÁ TU API KEY DE FINNHUB:</label>
+        <input type="text" id="api-key" placeholder="Pegá el código largo acá">
+    </div>
+
+    <button onclick="actualizarCotizaciones()">🔄 Actualizar Precios</button>
+    <div id="status"></div>
+
+    <div class="ticker-list" id="lista-precios">
+    </div>
+    
+    <button class="btn-config" onclick="mostrarConfigApi()">⚙️ Cambiar API Key</button>
+</div>
+
+<script>
+    const activos = [
+        { ticker: "BND", nombre: "Vanguard Total Bond Market" },
+        { ticker: "COPX", nombre: "Global X Copper Miners" },
+        { ticker: "EWZ", nombre: "iShares MSCI Brazil" },
+        { ticker: "FTSL", nombre: "First Trust Senior Loan" },
+        { ticker: "GOOGL", nombre: "Alphabet Inc." },
+        { ticker: "IVV", nombre: "iShares Core S&P 500" },
+        { ticker: "IYK", nombre: "iShares U.S. Consumer Goods" },
+        { ticker: "JHMM", nombre: "John Hancock Multifactor Mid Cap" },
+        { ticker: "MELI", nombre: "MercadoLibre" },
+        { ticker: "MSFT", nombre: "Microsoft" },
+        { ticker: "NVDA", nombre: "NVIDIA" },
+        { ticker: "SPDW", nombre: "SPDR Portfolio Developed World" },
+        { ticker: "SPY", nombre: "SPDR S&P 500 ETF Trust" },
+        { ticker: "VHT", nombre: "Vanguard Health Care" }
+    ];
+
+    window.onload = function() {
+        let claveGuardada = localStorage.getItem('finnhub_key');
+        if(claveGuardada) {
+            document.getElementById('api-key').value = claveGuardada;
+            document.getElementById('contenedor-api').style.display = "none";
+            actualizarCotizaciones();
+        } else {
+            renderListaVacia();
+        }
+    };
+
+    function renderListaVacia() {
+        const lista = document.getElementById('lista-precios');
+        lista.innerHTML = activos.map(a => `
+            <div class="ticker-row">
+                <div>
+                    <span class="ticker-name">${a.ticker}</span>
+                    <span class="ticker-company">${a.nombre}</span>
+                </div>
+                <div class="ticker-price-box">
+                    <span class="ticker-price">--</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function mostrarConfigApi() {
+        document.getElementById('contenedor-api').style.display = "block";
+    }
+
+    async function actualizarCotizaciones() {
+        const apiKey = document.getElementById('api-key').value.trim();
+        const status = document.getElementById('status');
+        
+        if (!apiKey) {
+            alert("Por favor, poné tu API Key de Finnhub primero.");
+            return;
+        }
+
+        localStorage.setItem('finnhub_key', apiKey);
+        document.getElementById('contenedor-api').style.display = "none";
+        status.innerText = "Buscando precios del mercado...";
+
+        const lista = document.getElementById('lista-precios');
+        let htmlContenido = "";
+
+        for (let a of activos) {
+            try {
+                const url = `https://finnhub.io/api/v1/quote?symbol=${a.ticker}&token=${apiKey}`;
+                const respuesta = await fetch(url);
+                const datos = await respuesta.json();
+
+                const precio = datos.c;
+                const cambioPorcentaje = datos.dp;
+
+                if (precio === 0 || precio === null || !precio) throw new Error("Sin datos");
+
+                let claseColor = "igual";
+                let signo = "";
+                if (cambioPorcentaje > 0) { claseColor = "sube"; signo = "+"; }
+                else if (cambioPorcentaje < 0) { claseColor = "baja"; }
+
+                htmlContenido += `
+                    <div class="ticker-row">
+                        <div>
+                            <span class="ticker-name">${a.ticker}</span>
+                            <span class="ticker-company">${a.nombre}</span>
+                        </div>
+                        <div class="ticker-price-box">
+                            <span class="ticker-price">U$S ${precio.toFixed(2)}</span>
+                            <div class="ticker-change ${claseColor}">${signo}${cambioPorcentaje.toFixed(2)}%</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                htmlContenido += `
+                    <div class="ticker-row">
+                        <div>
+                            <span class="ticker-name">${a.ticker}</span>
+                            <span class="ticker-company">${a.nombre}</span>
+                        </div>
+                        <div class="ticker-price-box">
+                            <span class="ticker-price" style="color:#64748b;">Error al cargar</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        lista.innerHTML = htmlContenido;
+        status.innerText = "Precios actualizados: " + new Date().toLocaleTimeString();
+    }
+</script>
+</body>
+</html>
