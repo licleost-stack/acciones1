@@ -25,7 +25,6 @@
         h1 { text-align: center; color: #38bdf8; margin-bottom: 5px; font-size: 24px; }
         p.subtitle { text-align: center; color: #94a3b8; margin-top: 0; font-size: 14px; margin-bottom: 20px; }
         
-        /* Cuadro de API elegante y ocultable */
         .api-box {
             background: #334155;
             padding: 12px;
@@ -61,7 +60,6 @@
         
         #status { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 10px; }
         
-        /* Botoncito discreto para configuración */
         .btn-config {
             background: none; border: none; color: #64748b; font-size: 11px; 
             text-decoration: underline; margin-top: 20px; cursor: pointer; padding: 5px; width: auto; display: block; margin-left: auto; margin-right: auto;
@@ -76,129 +74,4 @@
     <p class="subtitle">Tu Monitor Personal de Mercados</p>
     
     <div class="api-box" id="contenedor-api">
-        <label for="api-key">PEGÁ ACÁ TU API KEY DE FINNHUB:</label>
-        <input type="text" id="api-key" placeholder="Pegá el código largo acá">
-    </div>
-
-    <button onclick="actualizarCotizaciones()">🔄 Actualizar Precios</button>
-    <div id="status"></div>
-
-    <div class="ticker-list" id="lista-precios">
-        </div>
-    
-    <button class="btn-config" onclick="mostrarConfigApi()">⚙️ Cambiar API Key</button>
-</div>
-
-<script>
-    const activos = [
-        { ticker: "AAPL", nombre: "Apple Inc." },
-        { ticker: "MSFT", nombre: "Microsoft" },
-        { ticker: "TSLA", nombre: "Tesla" },
-        { ticker: "NVDA", nombre: "NVIDIA" },
-        { ticker: "SPCX", nombre: "SpaceX" },
-        { ticker: "META", nombre: "Meta Platforms" },
-        { ticker: "SPY",  nombre: "S&P 500 ETF" },
-        { ticker: "QQQ",  nombre: "Nasdaq 100 ETF" },
-        { ticker: "GLD",  nombre: "Oro (ETF GLD)" },
-        { ticker: "BINANCE:BTCUSDT", nombre: "Bitcoin" }
-    ];
-
-    window.onload = function() {
-        let claveGuardada = localStorage.getItem('finnhub_key');
-        if(claveGuardada) {
-            document.getElementById('api-key').value = claveGuardada;
-            document.getElementById('contenedor-api').style.display = "none"; // Oculta el cuadro feo de una
-            actualizarCotizaciones();
-        } else {
-            renderListaVacia();
-        }
-    };
-
-    function renderListaVacia() {
-        const lista = document.getElementById('lista-precios');
-        lista.innerHTML = activos.map(a => `
-            <div class="ticker-row">
-                <div>
-                    <span class="ticker-name">${a.ticker === 'BINANCE:BTCUSDT' ? 'BTC' : a.ticker}</span>
-                    <span class="ticker-company">${a.nombre}</span>
-                </div>
-                <div class="ticker-price-box">
-                    <span class="ticker-price">--</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function mostrarConfigApi() {
-        document.getElementById('contenedor-api').style.display = "block"; // Vuelve a mostrar el cuadro si tocan el engranaje
-    }
-
-    async function actualizarCotizaciones() {
-        const apiKey = document.getElementById('api-key').value.trim();
-        const status = document.getElementById('status');
-        
-        if (!apiKey) {
-            alert("Por favor, poné tu API Key de Finnhub primero.");
-            return;
-        }
-
-        localStorage.setItem('finnhub_key', apiKey);
-        // Escondemos el cuadro después de actualizar con éxito
-        document.getElementById('contenedor-api').style.display = "none";
-        status.innerText = "Buscando precios del mercado...";
-
-        const lista = document.getElementById('lista-precios');
-        let htmlContenido = "";
-
-        for (let a of activos) {
-            try {
-                const url = `https://finnhub.io/api/v1/quote?symbol=${a.ticker}&token=${apiKey}`;
-                const respuesta = await fetch(url);
-                const datos = await respuesta.json();
-
-                const precio = datos.c;
-                const cambioPorcentaje = datos.dp;
-
-                if (precio === 0 || precio === null) throw new Error("Sin datos");
-
-                let claseColor = "igual";
-                let signo = "";
-                if (cambioPorcentaje > 0) { claseColor = "sube"; signo = "+"; }
-                else if (cambioPorcentaje < 0) { claseColor = "baja"; }
-
-                let tickerMostrar = a.ticker === 'BINANCE:BTCUSDT' ? 'BTC' : a.ticker;
-
-                htmlContenido += `
-                    <div class="ticker-row">
-                        <div>
-                            <span class="ticker-name">${tickerMostrar}</span>
-                            <span class="ticker-company">${a.nombre}</span>
-                        </div>
-                        <div class="ticker-price-box">
-                            <span class="ticker-price">U$S ${precio.toFixed(2)}</span>
-                            <div class="ticker-change ${claseColor}">${signo}${cambioPorcentaje.toFixed(2)}%</div>
-                        </div>
-                    </div>
-                `;
-            } catch (error) {
-                let tickerMostrar = a.ticker === 'BINANCE:BTCUSDT' ? 'BTC' : a.ticker;
-                htmlContenido += `
-                    <div class="ticker-row">
-                        <div>
-                            <span class="ticker-name">${tickerMostrar}</span>
-                            <span class="ticker-company">${a.nombre}</span>
-                        </div>
-                        <div class="ticker-price-box">
-                            <span class="ticker-price" style="color:#64748b;">Mercado Cerrado o Error</span>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        lista.innerHTML = htmlContenido;
-        status.innerText = "Precios actualizados.";
-    }
-</script>
-</body>
-</html>
+        <label for="api-
